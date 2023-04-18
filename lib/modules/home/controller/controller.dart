@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -32,16 +34,13 @@ class Controller {
                 pw.SizedBox(height: 15),
                 pw.Text(userInformation.phone),
                 pw.SizedBox(height: 15),
-                pw.UrlLink(
-                  child: pw.Text(
-                    'Clique aqui',
-                    style: pw.TextStyle(
-                      color: PdfColor.fromHex(
-                        '2c9cee',
-                      ),
+                pw.Text(
+                  'https://google.com',
+                  style: pw.TextStyle(
+                    color: PdfColor.fromHex(
+                      '2c9cee',
                     ),
                   ),
-                  destination: 'https://google.com',
                 ),
               ],
             ); // Center
@@ -63,43 +62,35 @@ class Controller {
     try {
       Map<String, dynamic> config = {};
       List<LineText> list = [];
+      ByteData data = await rootBundle.load('assets/images/icon.png');
+      List<int> imageBytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      String base64Image = base64Encode(imageBytes);
+      list.add(LineText(
+          type: LineText.TYPE_IMAGE,
+          content: base64Image,
+          align: LineText.ALIGN_CENTER,
+          linefeed: 1));
+      list.add(LineText(linefeed: 1));
       list.add(LineText(
           type: LineText.TYPE_TEXT,
-          content: 'A Title',
+          content: userInformation.name,
           weight: 1,
-          align: LineText.ALIGN_CENTER,
+          align: LineText.ALIGN_LEFT,
           linefeed: 1));
       list.add(LineText(
           type: LineText.TYPE_TEXT,
-          content: 'this is conent left',
+          content: userInformation.email,
           weight: 0,
           align: LineText.ALIGN_LEFT,
           linefeed: 1));
       list.add(LineText(
           type: LineText.TYPE_TEXT,
-          content: 'this is conent right',
-          align: LineText.ALIGN_RIGHT,
-          linefeed: 1));
-      list.add(LineText(linefeed: 1));
-      list.add(LineText(
-          type: LineText.TYPE_BARCODE,
-          content: 'A12312112',
-          size: 10,
-          align: LineText.ALIGN_CENTER,
-          linefeed: 1));
-      list.add(LineText(linefeed: 1));
-      list.add(LineText(
-          type: LineText.TYPE_QRCODE,
-          content: 'qrcode i',
-          size: 10,
-          align: LineText.ALIGN_CENTER,
+          content: userInformation.phone,
+          align: LineText.ALIGN_LEFT,
           linefeed: 1));
       list.add(LineText(linefeed: 1));
 
-      //ByteData data = await rootBundle.load("assets/images/guide3.png");
-      //List<int> imageBytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      //String base64Image = base64Encode(imageBytes);
-      //list.add(LineText(type: LineText.TYPE_IMAGE, content: base64Image, align: LineText.ALIGN_CENTER, linefeed: 1));
       return await bluetoothPrint.printReceipt(config, list);
     } catch (e) {
       log(e.toString());
